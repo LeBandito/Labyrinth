@@ -6,7 +6,7 @@
 
 // Случайные размеры
 void RandomMainSize(int& width, int& height) {
-    int min_width(60), max_width(200);
+    int min_width(60), max_width(160);
     int min_height(35), max_height(80);
     
     width = min_width + std::rand() % (max_width - min_width + 1);
@@ -45,18 +45,19 @@ void RandomStartFinish(std::pair<int, int>& start, std::pair<int, int>& finish, 
     }
 }
 
-// Проверка занятости прямой 
-bool CheckPoint(const int& temporary, const std::vector<int>& Remember) {
-    for (int i = 0; i < Remember.size(); ++i) {
-        if (Remember[i] == temporary)
-            return true;
+void CompleteRoute(std::vector<std::vector<char>>& Labarint, const int& start, const int& finish, const int& main, const bool& vert_hor) {
+    if (vert_hor) {
+        for (int i = start + 1; i < finish; ++i) 
+            Labarint[main][i] = '1';
+    } else {
+        for (int i = start + 1; i < finish; ++i) 
+            Labarint[i][main] = '2';
     }
-    return false;
 }
 
 void RouteSnake(std::vector<std::vector<char>>& Labarint, const std::pair<int, int>& start, const std::pair<int, int>& finish, 
     const int& width, const int& height, const bool& check) {
-    int count_moving = ((Labarint.size() + 1) * (Labarint[0].size() + 1)) / 10;
+    int count_moving = ((Labarint.size() + 1) * (Labarint[0].size() + 1)) / 40;
     
     // Запоминаем горизонтальные маршруты
     std::vector<int> RememberX;
@@ -68,47 +69,45 @@ void RouteSnake(std::vector<std::vector<char>>& Labarint, const std::pair<int, i
     if (check) {
         last.second = 1 + std::rand() % (width - 2);
         // Запоминаем для проверки!
-        RememberY.push_back(last.first);
+        RememberX.push_back(last.second);
         last.first = start.first;
+        // Заполняем
+        CompleteRoute(Labarint, std::min(start.second, last.second), std::max(start.second, last.second), last.first, true);
         Labarint[last.first][last.second] = 'A';
     // По вертикали
     } else {
         last.first = 1 + std::rand() % (height - 2);
         // Запоминаем для проверки!
-        RememberX.push_back(last.second);
+        RememberY.push_back(last.first);
         last.second = start.second;
+        // Заполняем
+        CompleteRoute(Labarint, std::min(start.first, last.first), std::max(start.first, last.first), last.second, false);
         Labarint[last.first][last.second] = 'B';
     }
-    
-    int temporary(0);    
-    for (int i = 0; i < count_moving; ++i) {
-        if (Labarint[last.first][last.second] == 'A') {
-            do {
-                temporary = 1 + std::rand() % (height - 2);
-                std::cout << "brUh" << std::endl;
-            } while (CheckPoint(temporary, RememberY));
-            std::cout << "AAAAAAA" << std::endl;
-            
-            last.first = temporary;
-            Labarint[last.first][last.second] = 'B';
-            // Запоминаем для проверки!
-            RememberX.push_back(last.second);
-        } else {
-            do {
-                temporary = 1 + std::rand() % (width - 2);
-                std::cout << "bruH" << std::endl;
-            } while (CheckPoint(temporary, RememberY));
-            std::cout << "AAAAAAA" << std::endl;
-            
-            last.second = temporary;
-            Labarint[last.first][last.second] = 'A';
-            // Запоминаем для проверки!
-            RememberY.push_back(last.first);
-        }
-    }
-    
     ShowLabirint(Labarint);
     
+    int temporary(0);
+    for (int i = 0; i < count_moving; ++i) {
+        if (Labarint[last.first][last.second] == 'A') {
+            temporary = 1 + std::rand() % (height - 2);
+            // Заполняем
+            CompleteRoute(Labarint, std::min(last.first, temporary), std::max(last.first, temporary), last.second, false);
+            last.first = temporary;
+            // Запоминаем для проверки!
+            RememberY.push_back(last.first);
+            Labarint[last.first][last.second] = 'B';
+        } else {
+            temporary = 1 + std::rand() % (width - 2);
+            // Заполняем
+            CompleteRoute(Labarint, std::min(last.second, temporary), std::max(last.second, temporary), last.first, true);
+            last.second = temporary;
+            // Запоминаем для проверки!
+            RememberX.push_back(last.second);
+            Labarint[last.first][last.second] = 'A';
+        }
+        // std::cout << i + 1 << ") \n";
+        // ShowLabirint(Labarint);
+    }
 }
 
 // first = Y -------- second = X ------- Для удобства
@@ -131,12 +130,9 @@ int main() {
     Labarint[finish.first][finish.second] = 'F';
     ShowLabirint(Labarint);
     
-    RouteSnake(Labarint, start, finish, width, height, check);
-    
     // Новая идея: "Маршрут змейки"!
-    
-    
-    
+    RouteSnake(Labarint, start, finish, width, height, check);
+    ShowLabirint(Labarint);
     
     return 0;
 }
