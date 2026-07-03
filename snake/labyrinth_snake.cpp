@@ -3,6 +3,7 @@
 #include <iostream>
 #include <ctime>
 #include <vector>
+#include <fstream>
 
 // Случайные размеры
 void RandomMainSize(int& width, int& height) {
@@ -148,6 +149,15 @@ void RouteSnake(std::vector<std::vector<char>>& Labarint, const std::pair<int, i
     }
 }
 
+void ToTXT(const std::vector<std::vector<char>>& Labarint) {
+    std::ofstream file("labyrinth_snake.txt");
+    for (int i = 0; i < Labarint.size(); ++i) {
+        for (int j = 0; j < Labarint[i].size(); ++j)
+            file << Labarint[i][j];
+        file << std::endl;
+    }
+}
+
 // first = Y -------- second = X ------- Для удобства
 
 int main() {
@@ -169,6 +179,7 @@ int main() {
     // Новая идея: "Маршрут змейки"!
     RouteSnake(Labarint, start, finish, width, height, check);
     ShowLabirint(Labarint);
+    ToTXT(Labarint);
     
     return 0;
 }
