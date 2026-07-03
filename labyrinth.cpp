@@ -4,6 +4,7 @@
 #include <iostream>
 #include <ctime>
 #include <vector>
+#include <fstream>
 
 void CreateShape(int& vidth, int& height, const int& vidth_min, const int& vidth_max, const int& height_min, const int& height_max) {
     vidth = vidth_min + std::rand() % (vidth_max - vidth_min + 1);
@@ -135,6 +136,16 @@ void CreateMoving(std::vector<std::pair<int, int>>& WinRoute, std::vector<std::v
     }
 }
 
+void ToTXT(const std::vector<std::vector<char>>& labirint) {
+    std::ofstream file("labirint.txt");
+    for (int i = 0; i < labirint.size(); ++i) {
+        for (int j = 0; j < labirint[i].size(); ++j) {
+            file << labirint[i][j];
+        }
+        file << std::endl;
+    }
+}
+
 int main() {
     std::srand(time(NULL));
     int vidth_min(100), vidth_max(220);
@@ -154,7 +165,8 @@ int main() {
     std::vector<std::pair<int, int>> WinRoute;
     std::cout << "Create route!"<< std::endl;
     CreateMoving(WinRoute, labirint, vidth, height, start_x, start_y, finish_x, finish_y);
-    ShowLabirint(labirint);    
+    ShowLabirint(labirint);
+    ToTXT(labirint);
     
     return 0;
 }
