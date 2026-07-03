@@ -45,6 +45,7 @@ void RandomStartFinish(std::pair<int, int>& start, std::pair<int, int>& finish, 
     }
 }
 
+// Заполняем маршруты
 void CompleteRoute(std::vector<std::vector<char>>& Labarint, const int& start, const int& finish, const int& main, const bool& vert_hor) {
     if (vert_hor) {
         for (int i = start + 1; i < finish; ++i) 
@@ -57,56 +58,88 @@ void CompleteRoute(std::vector<std::vector<char>>& Labarint, const int& start, c
 
 void RouteSnake(std::vector<std::vector<char>>& Labarint, const std::pair<int, int>& start, const std::pair<int, int>& finish, 
     const int& width, const int& height, const bool& check) {
-    int count_moving = ((Labarint.size() + 1) * (Labarint[0].size() + 1)) / 40;
+    int count_moving = ((Labarint.size() + 1) * (Labarint[0].size() + 1)) / 80;
     
     // Запоминаем горизонтальные маршруты
-    std::vector<int> RememberX;
+    std::vector<bool> RememberX(width, false);
+    RememberX[start.second] = true;
+    RememberX[finish.second] = true;
     // Запоминаем вертикальные маршруты
-    std::vector<int> RememberY;
+    std::vector<bool> RememberY(height, false);
+    RememberY[start.first] = true;
+    RememberY[finish.first] = true;
     
     std::pair<int, int> last;
+    int temporary(0);
     // По горизонтали
     if (check) {
         last.second = 1 + std::rand() % (width - 2);
         // Запоминаем для проверки!
-        RememberX.push_back(last.second);
+        RememberX[last.second] = true;
         last.first = start.first;
         // Заполняем
         CompleteRoute(Labarint, std::min(start.second, last.second), std::max(start.second, last.second), last.first, true);
         Labarint[last.first][last.second] = 'A';
+        temporary = 1 + std::rand() % (height - 2);
     // По вертикали
     } else {
         last.first = 1 + std::rand() % (height - 2);
         // Запоминаем для проверки!
-        RememberY.push_back(last.first);
+        RememberY[last.first] = true;
         last.second = start.second;
         // Заполняем
         CompleteRoute(Labarint, std::min(start.first, last.first), std::max(start.first, last.first), last.second, false);
         Labarint[last.first][last.second] = 'B';
+        temporary = 1 + std::rand() % (width - 2);
     }
-    ShowLabirint(Labarint);
+    // ShowLabirint(Labarint);
     
-    int temporary(0);
     for (int i = 0; i < count_moving; ++i) {
         if (Labarint[last.first][last.second] == 'A') {
             temporary = 1 + std::rand() % (height - 2);
+            while (!((RememberY[temporary - 1] == false) && (RememberY[temporary + 1] == false))) {
+                temporary = 1 + std::rand() % (height - 2);
+                // std::cout << "2" << std::endl;
+            }
+            // std::cout << "BBBBBBBBBBBBBB" << std::endl;
             // Заполняем
             CompleteRoute(Labarint, std::min(last.first, temporary), std::max(last.first, temporary), last.second, false);
             last.first = temporary;
             // Запоминаем для проверки!
-            RememberY.push_back(last.first);
+            RememberY[last.first] = true;
             Labarint[last.first][last.second] = 'B';
         } else {
             temporary = 1 + std::rand() % (width - 2);
+            while (!((RememberX[temporary - 1] == false) && (RememberX[temporary + 1] == false))) {
+                temporary = 1 + std::rand() % (width - 2);
+                // std::cout << "1" << std::endl;
+            }
+            // std::cout << "AAAAAAAAAAAAA" << std::endl;
             // Заполняем
             CompleteRoute(Labarint, std::min(last.second, temporary), std::max(last.second, temporary), last.first, true);
             last.second = temporary;
             // Запоминаем для проверки!
-            RememberX.push_back(last.second);
+            RememberX[last.second] = true;
             Labarint[last.first][last.second] = 'A';
         }
-        // std::cout << i + 1 << ") \n";
+        // std::cout << i + 1 << ") \t" << count_moving + 1 << "\n";
         // ShowLabirint(Labarint);
+    }
+    
+    // Мне реально лень придумывать, как придти в точку finish. Так что я просто дорисую прямую из этой точки до первого пересечения.
+    int f_count(0);
+    if (check) {
+        f_count = finish.second - 1;
+        while (Labarint[finish.first][f_count] == '_') {
+            Labarint[finish.first][f_count] = '0';
+            --f_count;
+        }
+    } else {
+        f_count = finish.first - 1;
+        while (Labarint[f_count][finish.second] == '_') {
+            Labarint[f_count][finish.second] = '0';
+            --f_count;
+        }
     }
 }
 
@@ -117,7 +150,6 @@ int main() {
     // Случайные размеры
     int width(0), height(0);
     RandomMainSize(width, height);
-    
     // Создание лабиринта
     std::vector<std::vector<char>> Labarint(height, std::vector<char>(width, '_'));
     
@@ -128,7 +160,6 @@ int main() {
     RandomStartFinish(start, finish, width, height, check);
     Labarint[start.first][start.second] = 'S';
     Labarint[finish.first][finish.second] = 'F';
-    ShowLabirint(Labarint);
     
     // Новая идея: "Маршрут змейки"!
     RouteSnake(Labarint, start, finish, width, height, check);
