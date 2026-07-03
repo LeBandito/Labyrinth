@@ -6,8 +6,8 @@
 
 // Случайные размеры
 void RandomMainSize(int& width, int& height) {
-    int min_width(60), max_width(160);
-    int min_height(35), max_height(80);
+    int min_width(100), max_width(220);
+    int min_height(60), max_height(180);
     
     width = min_width + std::rand() % (max_width - min_width + 1);
     height = min_height + std::rand() % (max_height - min_height + 1);
@@ -49,10 +49,10 @@ void RandomStartFinish(std::pair<int, int>& start, std::pair<int, int>& finish, 
 void CompleteRoute(std::vector<std::vector<char>>& Labarint, const int& start, const int& finish, const int& main, const bool& vert_hor) {
     if (vert_hor) {
         for (int i = start + 1; i < finish; ++i) 
-            Labarint[main][i] = '1';
+            Labarint[main][i] = ' ';
     } else {
         for (int i = start + 1; i < finish; ++i) 
-            Labarint[i][main] = '2';
+            Labarint[i][main] = ' ';
     }
 }
 
@@ -70,6 +70,7 @@ void RouteSnake(std::vector<std::vector<char>>& Labarint, const std::pair<int, i
     RememberY[finish.first] = true;
     
     std::pair<int, int> last;
+    bool variant;
     int temporary(0);
     // По горизонтали
     if (check) {
@@ -79,7 +80,8 @@ void RouteSnake(std::vector<std::vector<char>>& Labarint, const std::pair<int, i
         last.first = start.first;
         // Заполняем
         CompleteRoute(Labarint, std::min(start.second, last.second), std::max(start.second, last.second), last.first, true);
-        Labarint[last.first][last.second] = 'A';
+        Labarint[last.first][last.second] = ' ';
+        variant = true;
         temporary = 1 + std::rand() % (height - 2);
     // По вертикали
     } else {
@@ -89,13 +91,14 @@ void RouteSnake(std::vector<std::vector<char>>& Labarint, const std::pair<int, i
         last.second = start.second;
         // Заполняем
         CompleteRoute(Labarint, std::min(start.first, last.first), std::max(start.first, last.first), last.second, false);
-        Labarint[last.first][last.second] = 'B';
+        Labarint[last.first][last.second] = ' ';
+        variant = false;
         temporary = 1 + std::rand() % (width - 2);
     }
     // ShowLabirint(Labarint);
     
     for (int i = 0; i < count_moving; ++i) {
-        if (Labarint[last.first][last.second] == 'A') {
+        if (variant) {
             temporary = 1 + std::rand() % (height - 2);
             while (!((RememberY[temporary - 1] == false) && (RememberY[temporary + 1] == false))) {
                 temporary = 1 + std::rand() % (height - 2);
@@ -107,7 +110,8 @@ void RouteSnake(std::vector<std::vector<char>>& Labarint, const std::pair<int, i
             last.first = temporary;
             // Запоминаем для проверки!
             RememberY[last.first] = true;
-            Labarint[last.first][last.second] = 'B';
+            Labarint[last.first][last.second] = ' ';
+            variant = false;
         } else {
             temporary = 1 + std::rand() % (width - 2);
             while (!((RememberX[temporary - 1] == false) && (RememberX[temporary + 1] == false))) {
@@ -120,7 +124,8 @@ void RouteSnake(std::vector<std::vector<char>>& Labarint, const std::pair<int, i
             last.second = temporary;
             // Запоминаем для проверки!
             RememberX[last.second] = true;
-            Labarint[last.first][last.second] = 'A';
+            Labarint[last.first][last.second] = ' ';
+            variant = true;
         }
         // std::cout << i + 1 << ") \t" << count_moving + 1 << "\n";
         // ShowLabirint(Labarint);
@@ -130,14 +135,14 @@ void RouteSnake(std::vector<std::vector<char>>& Labarint, const std::pair<int, i
     int f_count(0);
     if (check) {
         f_count = finish.second - 1;
-        while (Labarint[finish.first][f_count] == '_') {
-            Labarint[finish.first][f_count] = '0';
+        while (Labarint[finish.first][f_count] != ' ') {
+            Labarint[finish.first][f_count] = ' ';
             --f_count;
         }
     } else {
         f_count = finish.first - 1;
-        while (Labarint[f_count][finish.second] == '_') {
-            Labarint[f_count][finish.second] = '0';
+        while (Labarint[f_count][finish.second] != ' ') {
+            Labarint[f_count][finish.second] = ' ';
             --f_count;
         }
     }
@@ -146,12 +151,12 @@ void RouteSnake(std::vector<std::vector<char>>& Labarint, const std::pair<int, i
 // first = Y -------- second = X ------- Для удобства
 
 int main() {
-    std:srand(time(NULL));
+    std::srand(time(NULL));
     // Случайные размеры
     int width(0), height(0);
     RandomMainSize(width, height);
     // Создание лабиринта
-    std::vector<std::vector<char>> Labarint(height, std::vector<char>(width, '_'));
+    std::vector<std::vector<char>> Labarint(height, std::vector<char>(width, '#'));
     
     // Случайные координаты старта и финиша
     std::pair<int, int> start(0, 0), finish(0, 0);
